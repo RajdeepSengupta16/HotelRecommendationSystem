@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotel Recommendation System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            overflow: hidden;
+            min-height: 600px;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            color: #6c757d;
+        }
+
+        .tab:hover {
+            background: #e9ecef;
+        }
+
+        .tab.active {
+            background: white;
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .tab-content {
+            padding: 40px;
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input, 
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, 
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .alert.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .recommendations {
+            margin-top: 30px;
+        }
+
+        .hotel-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-left: 5px solid #667eea;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .hotel-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .hotel-name {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .hotel-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #666;
+        }
+
+        .detail-value {
+            color: #333;
+        }
+
+        .rating-stars {
+            color: #ffc107;
+        }
+
+        .score-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .amenities {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .amenities-label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #666;
+        }
+
+        .amenities-text {
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .hotel-details {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .main-content {
+                border-radius: 10px;
+            }
+
+            .tab-content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏨 Hotel Recommendation System</h1>
+            <p>Find your perfect stay with AI-powered recommendations</p>
+        </div>
+
+        <div class="main-content">
+            <div class="tabs">
+                <div class="tab active" onclick="showTab('login')">Login</div>
+                <div class="tab" onclick="showTab('register')">Register</div>
+                <div class="tab" onclick="showTab('recommend')">Get Recommendations</div>
+            </div>
+
+            <!-- Login Tab -->
+            <div id="login-tab" class="tab-content active">
+                <h2 style="margin-bottom: 30px; text-align: center; color: #333;">Welcome Back!</h2>
+                <div id="login-alert"></div>
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="login-username">Username</label>
+                        <input type="text" id="login-username" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" name="password" required>
+                    </div>
+                    <button type="submit" class="btn">Sign In</button>
+                </form>
+            </div>
+
+            <!-- Register Tab -->
+            <div id="register-tab" class="tab-content">
+                <h2 style="margin-bottom: 30px; text-align: center; color: #333;">Create Account</h2>
+                <div id="register-alert"></div>
+                <form id="register-form">
+                    <div class="form-group">
+                        <label for="register-username">Username</label>
+                        <input type="text" id="register-username" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-password">Password</label>
+                        <input type="password" id="register-password" name="password" required>
+                    </div>
+                    <button type="submit" class="btn">Create Account</button>
+                </form>
+            </div>
+
+            <!-- Recommendations Tab -->
+            <div id="recommend-tab" class="tab-content">
+                <h2 style="margin-bottom: 30px; text-align: center; color: #333;">Find Your Perfect Hotel</h2>
+                <div id="recommend-alert"></div>
+                <form id="preferences-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="services">Services Rating (1-5)</label>
+                            <input type="number" id="services" name="services" min="1" max="5" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="cleanliness">Cleanliness Rating (1-5)</label>
+                            <input type="number" id="cleanliness" name="cleanliness" min="1" max="5" step="0.1">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="value_for_money">Value for Money (1-5)</label>
+                            <input type="number" id="value_for_money" name="value_for_money" min="1" max="5" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="hotel_star">Hotel Star Rating</label>
+                            <input type="number" id="hotel_star" name="hotel_star" min="1" max="5" step="0.5">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="location">Preferred Location (optional)</label>
+                        <input type="text" id="location" name="location" placeholder="e.g., Mumbai, Delhi, Bangalore">
+                    </div>
+                    <div class="form-group">
+                        <label for="amenities">Desired Amenities</label>
+                        <textarea id="amenities" name="amenities" rows="3" placeholder="e.g., WiFi, Pool, Gym, Spa, Restaurant, Parking"></textarea>
+                    </div>
+                    <button type="submit" class="btn">Get Recommendations</button>
+                </form>
+
+                <div id="loading" class="loading hidden">
+                    <div class="spinner"></div>
+                    <p>Finding the perfect hotels for you...</p>
+                </div>
+
+                <div id="recommendations" class="recommendations hidden">
+                    <h3 style="margin-bottom: 25px; color: #333; text-align: center;">🌟 Top Hotel Recommendations for You</h3>
+                    <div id="hotels-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            
+            // Show selected tab
+            document.querySelector(`#${tabName}-tab`).classList.add('active');
+            document.querySelector(`.tab[onclick="showTab('${tabName}')"]`).classList.add('active');
+            
+            // Clear any alerts
+            clearAlerts();
+        }
+
+        function clearAlerts() {
+            document.querySelectorAll('[id$="-alert"]').forEach(alert => {
+                alert.innerHTML = '';
+            });
+        }
+
+        function showAlert(containerId, message, type = 'error') {
+            const container = document.getElementById(containerId);
+            container.innerHTML = `<div class="alert ${type}">${message}</div>`;
+        }
+
+        // Login form handler
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            clearAlerts();
+            
+            const formData = new FormData(e.target);
+            const data = {
+                username: formData.get('username'),
+                password: formData.get('password')
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/login/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showAlert('login-alert', 'Login successful! You can now get recommendations.', 'success');
+                    // Switch to recommendations tab after successful login
+                    setTimeout(() => showTab('recommend'), 1500);
+                } else {
+                    showAlert('login-alert', result.detail || 'Login failed');
+                }
+            } catch (error) {
+                showAlert('login-alert', 'Network error. Please check if the API server is running.');
+            }
+        });
+
+        // Register form handler
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            clearAlerts();
+            
+            const formData = new FormData(e.target);
+            const data = {
+                username: formData.get('username'),
+                password: formData.get('password')
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/register/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showAlert('register-alert', 'Account created successfully! Please login.', 'success');
+                    // Switch to login tab after successful registration
+                    setTimeout(() => showTab('login'), 1500);
+                } else {
+                    showAlert('register-alert', result.detail || 'Registration failed');
+                }
+            } catch (error) {
+                showAlert('register-alert', 'Network error. Please check if the API server is running.');
+            }
+        });
+
+        // Recommendations form handler
+        document.getElementById('preferences-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            clearAlerts();
+            
+            const formData = new FormData(e.target);
+            const data = {};
+            
+            // Convert form data to appropriate types
+            for (let [key, value] of formData.entries()) {
+                if (value.trim() === '') {
+                    data[key] = null;
+                } else if (key === 'amenities' || key === 'location') {
+                    data[key] = value;
+                } else {
+                    data[key] = parseFloat(value);
+                }
+            }
+
+            // Show loading
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('recommendations').classList.add('hidden');
+
+            try {
+                const response = await fetch(`${API_BASE}/recommend/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                // Hide loading
+                document.getElementById('loading').classList.add('hidden');
+
+                if (response.ok) {
+                    displayRecommendations(result.recommendations);
+                } else {
+                    showAlert('recommend-alert', result.detail || 'Failed to get recommendations');
+                }
+            } catch (error) {
+                document.getElementById('loading').classList.add('hidden');
+                showAlert('recommend-alert', 'Network error. Please check if the API server is running.');
+            }
+        });
+
+        function displayRecommendations(hotels) {
+            const container = document.getElementById('hotels-list');
+            container.innerHTML = '';
+
+            if (hotels.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #6c757d;">No recommendations found. Try adjusting your preferences.</p>';
+                document.getElementById('recommendations').classList.remove('hidden');
+                return;
+            }
+
+            hotels.forEach((hotel, index) => {
+                const stars = '⭐'.repeat(Math.floor(hotel.hotel_star));
+                const ratingStars = '⭐'.repeat(Math.floor(hotel.rating));
+                
+                const hotelCard = document.createElement('div');
+                hotelCard.className = 'hotel-card';
+                hotelCard.innerHTML = `
+                    <div class="hotel-name">${index + 1}. ${hotel.name}</div>
+                    <div class="hotel-details">
+                        <div class="detail-item">
+                            <span class="detail-label">📍 Location:</span>
+                            <span class="detail-value">${hotel.location || 'Location not specified'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Rating:</span>
+                            <span class="detail-value rating-stars">${ratingStars} (${hotel.rating})</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Stars:</span>
+                            <span class="detail-value">${stars} (${hotel.hotel_star})</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Match Score:</span>
+                            <span class="score-badge">${(hotel.hybrid_score * 100).toFixed(1)}%</span>
+                        </div>
+                    </div>
+                    <div class="amenities">
+                        <div class="amenities-label">🏨 Available Amenities:</div>
+                        <div class="amenities-text">${hotel.amenities}</div>
+                    </div>
+                `;
+                container.appendChild(hotelCard);
+            });
+
+            document.getElementById('recommendations').classList.remove('hidden');
+        }
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            showTab('login');
+        });
+    </script>
+</body>
+</html>
